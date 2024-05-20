@@ -41,37 +41,37 @@ export const authenticateCeramic = async (
   return returnVal;
 };
 
-const authenticateKeyDID = async (
-  ceramic: CeramicClient,
-  compose: ComposeClient,
-) => {
-  let seed_array: Uint8Array;
-  if (localStorage.getItem(DID_SEED_KEY) === null) {
-    // for production you will want a better place than localStorage for your sessions.
-    console.log('Generating seed...');
-    let seed = crypto.getRandomValues(new Uint8Array(32));
-    let seed_json = JSON.stringify(seed, (key, value) => {
-      if (value instanceof Uint8Array) {
-        return Array.from(value);
-      }
-      return value;
-    });
-    localStorage.setItem(DID_SEED_KEY, seed_json);
-    seed_array = seed;
-    console.log('Generated new seed: ' + seed);
-  } else {
-    let seed_json_value = localStorage.getItem(DID_SEED_KEY);
-    let seed_object = JSON.parse(seed_json_value as string);
-    seed_array = new Uint8Array(seed_object);
-    console.log('Found seed: ' + seed_array);
-  }
-  const provider = new Ed25519Provider(seed_array);
-  const did = new DID({ provider, resolver: getResolver() });
-  await did.authenticate();
-  ceramic.did = did;
-  compose.setDID(did);
-  return;
-};
+// const authenticateKeyDID = async (
+//   ceramic: CeramicClient,
+//   compose: ComposeClient,
+// ) => {
+//   let seed_array: Uint8Array;
+//   if (localStorage.getItem(DID_SEED_KEY) === null) {
+//     // for production you will want a better place than localStorage for your sessions.
+//     console.log('Generating seed...');
+//     let seed = crypto.getRandomValues(new Uint8Array(32));
+//     let seed_json = JSON.stringify(seed, (key, value) => {
+//       if (value instanceof Uint8Array) {
+//         return Array.from(value);
+//       }
+//       return value;
+//     });
+//     localStorage.setItem(DID_SEED_KEY, seed_json);
+//     seed_array = seed;
+//     console.log('Generated new seed: ' + seed);
+//   } else {
+//     let seed_json_value = localStorage.getItem(DID_SEED_KEY);
+//     let seed_object = JSON.parse(seed_json_value as string);
+//     seed_array = new Uint8Array(seed_object);
+//     console.log('Found seed: ' + seed_array);
+//   }
+//   const provider = new Ed25519Provider(seed_array);
+//   const did = new DID({ provider, resolver: getResolver() });
+//   await did.authenticate();
+//   ceramic.did = did;
+//   compose.setDID(did);
+//   return;
+// };
 
 const authenticateEthPKH = async (
   ceramic: CeramicClient,
@@ -123,8 +123,10 @@ const authenticateEthPKH = async (
   }
 
   // Set our Ceramic DID to be our session DID.
+  // @ts-ignore
   compose.setDID(session.did);
   console.log(compose.did, 'user compose did');
+   // @ts-ignore
   ceramic.did = session.did;
   console.log(ceramic.did, 'ceramic did');
   localStorage.setItem('display did', session.did.toString());
