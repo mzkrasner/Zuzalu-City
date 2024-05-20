@@ -79,7 +79,7 @@ const authenticateEthPKH = async (
   const sessionStr = localStorage.getItem('ceramic:eth_did');
   let session;
   console.log('existing session', sessionStr);
-  if (sessionStr) {
+  if (sessionStr && sessionStr !== null) {
     session = await DIDSession.fromSession(sessionStr);
   }
 
