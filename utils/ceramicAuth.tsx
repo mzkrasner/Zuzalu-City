@@ -96,12 +96,16 @@ const authenticateEthPKH = async (
     const addresses = await ethProvider.enable({
       method: 'eth_requestAccounts',
     });
+    console.log('addresses', addresses);
     const accountId = await getAccountId(ethProvider, addresses[0]);
+    console.log(accountId, 'account');
     console.log(accountId, 'account');
     const authMethod = await EthereumWebAuth.getAuthMethod(
       ethProvider,
       accountId,
     );
+
+    console.log('authmethod', authMethod);
     /**
      * Create DIDSession & provide capabilities for resources that we want to access.
      * @NOTE: The specific resources (ComposeDB data models) are provided through
@@ -111,13 +115,17 @@ const authenticateEthPKH = async (
     session = await DIDSession.authorize(authMethod, {
       resources: compose.resources,
     });
+
+    console.log('session', session);
     // Set the session in localStorage.
     localStorage.setItem('ceramic:eth_did', session.serialize());
   }
 
   // Set our Ceramic DID to be our session DID.
   compose.setDID(session.did);
+  console.log(compose.did, 'user compose did');
   ceramic.did = session.did;
+  console.log(ceramic.did, 'ceramic did');
   localStorage.setItem('display did', session.did.toString());
   console.log(session.did, 'session did');
   console.log(compose.did, 'user did');
