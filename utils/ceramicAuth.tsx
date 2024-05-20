@@ -113,7 +113,7 @@ const authenticateEthPKH = async (
      */
     console.log('authenticating');
     //@ts-ignore
-    session = await DIDSession.get(authMethod, {
+    session = await DIDSession.get(accountId, authMethod, {
       resources: compose.resources,
     });
 
