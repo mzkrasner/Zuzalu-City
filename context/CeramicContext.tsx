@@ -56,6 +56,7 @@ export const CeramicProvider = ({ children }: any) => {
   const [username, setUsername] = useState<string | undefined>(undefined);
   const [newUser, setNewuser] = useState(false);
   const [profile, setProfile] = useState<Profile | undefined>();
+  
 
   const authenticate = async () => {
     console.log('authenticating', ceramicUrl, ceramic, composeClient);
