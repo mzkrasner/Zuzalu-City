@@ -90,7 +90,7 @@ const authenticateEthPKH = async (
     }
 
     // We enable the ethereum provider to get the user's addresses.
-    const ethProvider = window.ethereum;
+    const ethProvider = window.ethereum 
     console.log('found provider', ethProvider);
     // request ethereum accounts.
     const addresses = await ethProvider.enable({
@@ -119,7 +119,7 @@ const authenticateEthPKH = async (
 
     console.log('session', session);
     // Set the session in localStorage.
-    localStorage.setItem('ceramic:eth_did', session.serialize());
+    // localStorage.setItem('ceramic:eth_did', session.
   }
 
   // Set our Ceramic DID to be our session DID.
