@@ -59,7 +59,10 @@ export const CeramicProvider = ({ children }: any) => {
 
   const authenticate = async () => {
     console.log('authenticating', ceramicUrl, ceramic, composeClient);
-    await authenticateCeramic(ceramic, composeClient);
+    const sessionStarted = await authenticateCeramic(ceramic, composeClient);
+    if (!sessionStarted.did) {
+      return;
+    }
     setIsAuthenticated(true);
     await getProfile();
     console.log(newUser, profile, 'info');

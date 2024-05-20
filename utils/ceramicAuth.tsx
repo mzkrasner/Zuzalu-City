@@ -36,8 +36,9 @@ export const authenticateCeramic = async (
   if (auth_type == 'eth') {
     await authenticateEthPKH(ceramic, compose);
   }*/
-  await authenticateEthPKH(ceramic, compose);
+  const returnVal = await authenticateEthPKH(ceramic, compose);
   localStorage.setItem('logged_in', 'true');
+  return returnVal;
 };
 
 const authenticateKeyDID = async (
@@ -120,5 +121,7 @@ const authenticateEthPKH = async (
   localStorage.setItem('display did', session.did.toString());
   console.log(session.did, 'session did');
   console.log(compose.did, 'user did');
-  return;
+  
+  // Return the status of the session.
+  return session;
 };
