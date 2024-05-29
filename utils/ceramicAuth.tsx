@@ -5,6 +5,7 @@ import { getResolver } from 'key-did-resolver';
 import { DID } from 'dids';
 import { DIDSession } from 'did-session';
 import { EthereumWebAuth, getAccountId } from '@didtools/pkh-ethereum';
+import { AccountId } from 'caip';
 import { SolanaWebAuth, getAccountIdByNetwork } from '@didtools/pkh-solana';
 import { StreamID } from '@ceramicnetwork/streamid';
 //import { ModelInstanceDocument } from '@composedb/types';
@@ -95,11 +96,15 @@ const authenticateEthPKH = async (
     const addresses = await ethProvider.enable({
       method: 'eth_requestAccounts',
     });
-    const accountId = await getAccountId(ethProvider, addresses[0]);
-    console.log(accountId, 'account');
+    const address = addresses[0];
+    const ethMainnetChainId = '1';
+    const chainNameSpace = 'eip155';
+    const chainId = `${chainNameSpace}:${ethMainnetChainId}`;
+    const accountIdCAIP = new AccountId({ address, chainId });
+
     const authMethod = await EthereumWebAuth.getAuthMethod(
       ethProvider,
-      accountId,
+      accountIdCAIP,
     );
     /**
      * Create DIDSession & provide capabilities for resources that we want to access.
@@ -109,7 +114,7 @@ const authenticateEthPKH = async (
     console.log('authenticating');
     session = await DIDSession.authorize(authMethod, {
       resources: compose.resources,
-      domain: "https://cheery-entremet-b783ee.netlify.app/"
+      domain: 'https://cheery-entremet-b783ee.netlify.app/',
     });
     // Set the session in localStorage.
     localStorage.setItem('ceramic:eth_did', session.serialize());
