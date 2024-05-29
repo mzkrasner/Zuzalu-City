@@ -110,6 +110,7 @@ const authenticateEthPKH = async (
 
     return result;
   };
+  console.log(didKey.id, 'didKey.id')
 
   const siweMessage = new SiweMessage({
     domain: 'https://newnew--cheery-entremet-b783ee.netlify.app/',
