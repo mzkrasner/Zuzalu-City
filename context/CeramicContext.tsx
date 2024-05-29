@@ -9,7 +9,7 @@ import { authenticateCeramic } from '../utils/ceramicAuth';
  * Configure ceramic Client & create context.
  */
 const ceramicUrl =
-  process.env.NEXT_PUBLIC_CERAMIC_URL || 'http://localhost:7007';
+  process.env.NEXT_PUBLIC_CERAMIC_URL || 'https://zuzalu-city-dev.com/';
 console.log("ceramic url", ceramicUrl)
 
 const ceramic = new CeramicClient(ceramicUrl);
