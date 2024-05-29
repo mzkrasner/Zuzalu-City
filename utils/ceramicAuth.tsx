@@ -125,10 +125,8 @@ const authenticateEthPKH = async (
     resources: ['ceramic://*'],
   });
 
-  const signature = await ethProvider.send('personal_sign', [
-    siweMessage.statement,
-    address,
-  ]);
+  const signer = await ethProvider.getSigner()
+  const signature = await signer.signMessage(siweMessage.signMessage());
   siweMessage.signature = signature;
   const cacao = Cacao.fromSiweMessage(siweMessage);
   const did = await createDIDCacao(didKey, cacao);
