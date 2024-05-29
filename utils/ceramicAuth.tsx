@@ -6,6 +6,7 @@ import { getResolver } from 'key-did-resolver';
 import { DID } from 'dids';
 import { Wallet, randomBytes, BrowserProvider, getDefaultProvider } from 'ethers';
 import { DIDSession, createDIDCacao, createDIDKey } from 'did-session';
+import * as u8a from 'uint8arrays';
 import { EthereumWebAuth, getAccountId } from '@didtools/pkh-ethereum';
 import { AccountId } from 'caip';
 import { SolanaWebAuth, getAccountIdByNetwork } from '@didtools/pkh-solana';
@@ -90,27 +91,27 @@ const authenticateEthPKH = async (
   const addresses = await ethProvider.listAccounts();
   console.log('found addresses', addresses[0].address);
   const address = addresses[0].address;
-  const keySeed = randomBytes(32);
-  console.log('keySeed', keySeed);
-  const didKey = await createDIDKey(keySeed);
+  let seed_array: Uint8Array;
+
+    // for production you will want a better place than localStorage for your sessions.
+    console.log("Generating seed...");
+    let seed = crypto.getRandomValues(new Uint8Array(32));
+    let seed_json = JSON.stringify(seed, (key, value) => {
+      if (value instanceof Uint8Array) {
+        return Array.from(value);
+      }
+      return value;
+    });
+    localStorage.setItem(DID_SEED_KEY, seed_json);
+    seed_array = seed;
+    console.log("Generated new seed: " + seed);
+  
+  console.log('keySeed', seed_array);
+  const didKey = await createDIDKey(seed_array);
   console.log('didKey', didKey);
   const now = new Date();
   const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  const randomString = (length: number): string => {
-    const characters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    const bytes = randomBytes(length);
-
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      const byte = bytes[i] % charactersLength;
-      result += characters.charAt(byte);
-    }
-
-    return result;
-  };
   console.log(didKey.id, 'didKey.id')
 
   const siweMessage = new SiweMessage({
@@ -120,7 +121,7 @@ const authenticateEthPKH = async (
     uri: didKey.id,
     version: '1',
     chainId: '1',
-    nonce: randomString(10),
+    nonce: u8a.toString(randomBytes(8), 'base64url'),
     issuedAt: now.toISOString(),
     expirationTime: oneMonthLater.toISOString(),
     resources: ['ceramic://*'],
@@ -131,8 +132,8 @@ const authenticateEthPKH = async (
   siweMessage.signature = signature;
   const cacao = Cacao.fromSiweMessage(siweMessage);
   const did = await createDIDCacao(didKey, cacao);
-  const newSession = new DIDSession({ cacao, keySeed, did });
-  const authBearer = newSession.serialize();
+  const newSession = new DIDSession({ cacao, keySeed: seed_array, did });
+  // const authBearer = newSession.serialize();
   const session = newSession;
 
   // Set our Ceramic DID to be our session DID.
