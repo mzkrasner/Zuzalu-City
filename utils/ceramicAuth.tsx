@@ -1,9 +1,11 @@
 //import type { CeramicApi } from "@ceramicnetwork/common";
 import type { ComposeClient } from '@composedb/client';
+import { Cacao, SiweMessage } from '@didtools/cacao';
 import { Ed25519Provider } from 'key-did-provider-ed25519';
 import { getResolver } from 'key-did-resolver';
 import { DID } from 'dids';
-import { DIDSession } from 'did-session';
+import { Wallet, randomBytes, BrowserProvider, getDefaultProvider } from 'ethers';
+import { DIDSession, createDIDCacao, createDIDKey } from 'did-session';
 import { EthereumWebAuth, getAccountId } from '@didtools/pkh-ethereum';
 import { AccountId } from 'caip';
 import { SolanaWebAuth, getAccountIdByNetwork } from '@didtools/pkh-solana';
@@ -82,34 +84,56 @@ const authenticateEthPKH = async (
   }
 
   // We enable the ethereum provider to get the user's addresses.
-  const ethProvider = window.ethereum;
+  const ethProvider =  new BrowserProvider( window.ethereum );
   console.log('found provider', ethProvider);
   // request ethereum accounts.
-  const addresses = await ethProvider.enable({
-    method: 'eth_requestAccounts',
-  });
-  const address = addresses[0];
-  const ethMainnetChainId = '1';
-  const chainNameSpace = 'eip155';
-  const chainId = `${chainNameSpace}:${ethMainnetChainId}`;
-  const accountIdCAIP = new AccountId({ address, chainId });
+  const addresses = await ethProvider.listAccounts();
+  console.log('found addresses', addresses[0].address);
+  const address = addresses[0].address;
+  const keySeed = randomBytes(32);
+  const didKey = await createDIDKey(keySeed);
 
-  const authMethod = await EthereumWebAuth.getAuthMethod(
-    ethProvider,
-    accountIdCAIP,
-  );
-  /**
-   * Create DIDSession & provide capabilities for resources that we want to access.
-   * @NOTE: The specific resources (ComposeDB data models) are provided through
-   * "compose.resources" below.
-   */
-  console.log('authenticating');
-  const session = await DIDSession.get(accountIdCAIP, authMethod, {
-    resources: compose.resources,
+  const now = new Date();
+  const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const randomString = (length: number): string => {
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    const bytes = randomBytes(length);
+
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      const byte = bytes[i] % charactersLength;
+      result += characters.charAt(byte);
+    }
+
+    return result;
+  };
+
+  const siweMessage = new SiweMessage({
     domain: 'https://newnew--cheery-entremet-b783ee.netlify.app/',
+    address,
+    statement: 'Give this application access to some of your data on Ceramic',
+    uri: didKey.id,
+    version: '1',
+    chainId: '1',
+    nonce: randomString(10),
+    issuedAt: now.toISOString(),
+    expirationTime: oneMonthLater.toISOString(),
+    resources: ['ceramic://*'],
   });
-  // Set the session in localStorage.
-  // localStorage.setItem('ceramic:eth_did', session.serialize());
+
+  const signature = await ethProvider.send('personal_sign', [
+    siweMessage.statement,
+    address,
+  ]);
+  siweMessage.signature = signature;
+  const cacao = Cacao.fromSiweMessage(siweMessage);
+  const did = await createDIDCacao(didKey, cacao);
+  const newSession = new DIDSession({ cacao, keySeed, did });
+  const authBearer = newSession.serialize();
+  const session = newSession;
 
   // Set our Ceramic DID to be our session DID.
   compose.setDID(session.did);
