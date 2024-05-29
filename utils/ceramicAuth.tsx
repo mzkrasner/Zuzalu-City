@@ -107,7 +107,8 @@ const authenticateEthPKH = async (
     console.log("Generated new seed: " + seed);
   
   console.log('keySeed', seed_array);
-  const provider = new Ed25519Provider(seed_array);
+  const buf = Buffer.from(seed_array);
+  const provider = new Ed25519Provider(buf);
   const didKey = new DID({ provider, resolver: getResolver() });
   await didKey.authenticate();
   console.log('didKey', didKey);
@@ -117,7 +118,7 @@ const authenticateEthPKH = async (
   console.log(didKey.id, 'didKey.id')
 
   const siweMessage = new SiweMessage({
-    domain: 'https://newnew--cheery-entremet-b783ee.netlify.app/',
+    domain: window.location.origin,
     address,
     statement: 'Give this application access to some of your data on Ceramic',
     uri: didKey.id,
