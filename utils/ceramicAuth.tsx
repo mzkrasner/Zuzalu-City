@@ -109,6 +109,7 @@ const authenticateEthPKH = async (
     console.log('authenticating');
     session = await DIDSession.authorize(authMethod, {
       resources: compose.resources,
+      domain: "https://cheery-entremet-b783ee.netlify.app/"
     });
     // Set the session in localStorage.
     localStorage.setItem('ceramic:eth_did', session.serialize());
