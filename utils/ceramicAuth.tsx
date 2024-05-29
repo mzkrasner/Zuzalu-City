@@ -107,7 +107,9 @@ const authenticateEthPKH = async (
     console.log("Generated new seed: " + seed);
   
   console.log('keySeed', seed_array);
-  const didKey = await createDIDKey(seed_array);
+  const provider = new Ed25519Provider(seed_array);
+  const didKey = new DID({ provider, resolver: getResolver() });
+  await didKey.authenticate();
   console.log('didKey', didKey);
   const now = new Date();
   const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
