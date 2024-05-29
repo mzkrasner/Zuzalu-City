@@ -115,6 +115,7 @@ const authenticateEthPKH = async (
     //@ts-ignore
     session = await DIDSession.get(accountId, authMethod, {
       resources: compose.resources,
+      domain: 'zuzalu-city.vercel.app'
     });
 
     console.log('session', session);
