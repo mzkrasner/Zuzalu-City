@@ -77,45 +77,39 @@ const authenticateEthPKH = async (
   ceramic: CeramicClient,
   compose: ComposeClient,
 ) => {
-  const sessionStr = localStorage.getItem('ceramic:eth_did');
-  let session;
-  console.log('existing session', sessionStr);
-  if (sessionStr) {
-    session = await DIDSession.fromSession(sessionStr);
+  if (window.ethereum === null || window.ethereum === undefined) {
+    throw new Error('No injected Ethereum provider found.');
   }
 
-  if (!session || (session.hasSession && session.isExpired)) {
-    if (window.ethereum === null || window.ethereum === undefined) {
-      throw new Error('No injected Ethereum provider found.');
-    }
+  // We enable the ethereum provider to get the user's addresses.
+  const ethProvider = window.ethereum;
+  console.log('found provider', ethProvider);
+  // request ethereum accounts.
+  const addresses = await ethProvider.enable({
+    method: 'eth_requestAccounts',
+  });
+  const address = addresses[0];
+  const ethMainnetChainId = '1';
+  const chainNameSpace = 'eip155';
+  const chainId = `${chainNameSpace}:${ethMainnetChainId}`;
+  const accountIdCAIP = new AccountId({ address, chainId });
 
-    // We enable the ethereum provider to get the user's addresses.
-    const ethProvider = window.ethereum;
-    console.log('found provider', ethProvider);
-    // request ethereum accounts.
-    const addresses = await ethProvider.enable({
-      method: 'eth_requestAccounts',
-    });
-    const address = addresses[0];
-    const ethMainnetChainId = '1';
-    const chainNameSpace = 'eip155';
-    const chainId = `${chainNameSpace}:${ethMainnetChainId}`;
-    const accountIdCAIP = new AccountId({ address, chainId });
-
-    const authMethod = await EthereumWebAuth.getAuthMethod(
-      ethProvider,
-      accountIdCAIP,
-    );
-    /**
-     * Create DIDSession & provide capabilities for resources that we want to access.
-     * @NOTE: The specific resources (ComposeDB data models) are provided through
-     * "compose.resources" below.
-     */
-    console.log('authenticating');
-    session = await DIDSession.get(accountIdCAIP, authMethod, { resources: compose.resources });
-    // Set the session in localStorage.
-    localStorage.setItem('ceramic:eth_did', session.serialize());
-  }
+  const authMethod = await EthereumWebAuth.getAuthMethod(
+    ethProvider,
+    accountIdCAIP,
+  );
+  /**
+   * Create DIDSession & provide capabilities for resources that we want to access.
+   * @NOTE: The specific resources (ComposeDB data models) are provided through
+   * "compose.resources" below.
+   */
+  console.log('authenticating');
+  const session = await DIDSession.get(accountIdCAIP, authMethod, {
+    resources: compose.resources,
+    domain: 'https://newnew--cheery-entremet-b783ee.netlify.app/',
+  });
+  // Set the session in localStorage.
+  // localStorage.setItem('ceramic:eth_did', session.serialize());
 
   // Set our Ceramic DID to be our session DID.
   compose.setDID(session.did);
