@@ -91,8 +91,9 @@ const authenticateEthPKH = async (
   console.log('found addresses', addresses[0].address);
   const address = addresses[0].address;
   const keySeed = randomBytes(32);
+  console.log('keySeed', keySeed);
   const didKey = await createDIDKey(keySeed);
-
+  console.log('didKey', didKey);
   const now = new Date();
   const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
